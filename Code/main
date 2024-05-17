@@ -1,0 +1,250 @@
+#include <iostream>
+#include <cstdlib> // for srand, rand
+#include <ctime>   // for time
+
+using namespace std;
+
+const int SIZE = 3;
+const char EMPTY = '*';
+char PLAYER_SYMBOL = 'X';
+char COMPUTER_SYMBOL = 'O';
+char board[SIZE][SIZE];
+int compCount = 0, playerCount = 0;
+
+// declarations for later
+void initialize();
+void draw();
+void getChoice(bool);
+int checkWinner();
+int gameOver();
+bool check(int);
+void fill(int, char);
+int generateRandomMove();
+void chooseSymbol();
+int checkTie();
+bool playAgain();
+
+int main() {
+    // initialize random seed
+    srand(time(0));
+    
+    bool play = true;
+    
+    while (play) {
+        // lets user choose X or O
+        chooseSymbol();
+
+        // initialize board
+        initialize();
+        
+        // print board
+        draw();
+        
+        bool playerTurn = true;
+        int result;
+
+        // main game loop
+        while (true) {
+            getChoice(playerTurn);
+            playerTurn = !playerTurn;
+            draw();
+            
+            result = checkWinner();
+            if (result) break;
+
+            result = gameOver();
+            if (result) {
+                cout << "\nThe game is a tie!\n";
+                break;
+            }
+        }
+
+        cout << "Game Over" << endl;
+        play = playAgain();
+    }
+
+    cout << "Thank you for playing!" << endl;
+    return 0;
+}
+
+void initialize() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            board[i][j] = EMPTY;
+        }
+    }
+}
+
+// visualization of board
+void draw() {
+    system("CLS");
+    cout << "Player:   " << PLAYER_SYMBOL << endl;
+    cout << "Computer: " << COMPUTER_SYMBOL << endl << endl;
+
+    cout << "|---|---|---|\n";
+    for (int i = 0; i < SIZE; i++) {
+        cout << "| ";
+        for (int j = 0; j < SIZE; j++) {
+            cout << board[i][j] << " | ";
+        }
+        cout << endl << "|---|---|---|\n";
+    }
+}
+
+// player choice
+void getChoice(bool isPlayer) {
+    char sym = isPlayer ? PLAYER_SYMBOL : COMPUTER_SYMBOL;
+
+    if (isPlayer) {
+        int row, cell;
+        while (true) {
+            cout << "Enter Row (0-2): ";
+            cin >> row;
+            cout << "Enter Cell (0-2): ";
+            cin >> cell;
+
+            if (row < 0 || row >= SIZE || cell < 0 || cell >= SIZE) {
+                cout << "\nInvalid Location Entered\nEnter again\n";
+                continue;
+            }
+
+            if (board[row][cell] != EMPTY) {
+                cout << "Location is already filled!\nPlease enter again\n";
+                continue;
+            }
+
+            board[row][cell] = sym;
+            playerCount++;
+            break;
+        }
+    } else {
+        int loc;
+        while (true) {
+            loc = generateRandomMove();
+            if (check(loc)) {
+                fill(loc, sym);
+                compCount++;
+                break;
+            }
+        }
+    }
+}
+
+// victor checker
+int checkWinner() {
+    for (int i = 0; i < SIZE; i++) {
+        if (board[i][0] != EMPTY && board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
+            cout << (board[i][0] == PLAYER_SYMBOL ? "\nYou Won\n" : "\nYou have been defeated by the computer\n");
+            return 1;
+        }
+        if (board[0][i] != EMPTY && board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
+            cout << (board[0][i] == PLAYER_SYMBOL ? "\nYou Won\n" : "\nYou have been defeated by the computer\n");
+            return 1;
+        }
+    }
+
+    if (board[0][0] != EMPTY && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
+        cout << (board[0][0] == PLAYER_SYMBOL ? "\nYou Won\n" : "\nYou have been defeated by the computer\n");
+        return 1;
+    }
+    if (board[0][2] != EMPTY && board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
+        cout << (board[0][2] == PLAYER_SYMBOL ? "\nYou Won\n" : "\nYou have been defeated by the computer\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+// end screen
+int gameOver() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (board[i][j] == EMPTY) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+// game memory
+bool check(int loc) {
+    switch (loc) {
+        case 1: return board[0][0] == EMPTY;
+        case 2: return board[0][1] == EMPTY;
+        case 3: return board[0][2] == EMPTY;
+        case 4: return board[1][0] == EMPTY;
+        case 5: return board[1][1] == EMPTY;
+        case 6: return board[1][2] == EMPTY;
+        case 7: return board[2][0] == EMPTY;
+        case 8: return board[2][1] == EMPTY;
+        case 9: return board[2][2] == EMPTY;
+        default: return false;
+    }
+}
+
+void fill(int loc, char sym) {
+    switch (loc) {
+        case 1: board[0][0] = sym; break;
+        case 2: board[0][1] = sym; break;
+        case 3: board[0][2] = sym; break;
+        case 4: board[1][0] = sym; break;
+        case 5: board[1][1] = sym; break;
+        case 6: board[1][2] = sym; break;
+        case 7: board[2][0] = sym; break;
+        case 8: board[2][1] = sym; break;
+        case 9: board[2][2] = sym; break;
+    }
+}
+
+int generateRandomMove() {
+    return (rand() % 9) + 1;
+}
+
+// player choice
+void chooseSymbol() {
+    char choice;
+    cout << "Choose your symbol (X or O): ";
+    while (true) {
+        cin >> choice;
+        if (choice == 'X' || choice == 'x') {
+            PLAYER_SYMBOL = 'X';
+            COMPUTER_SYMBOL = 'O';
+            break;
+        } else if (choice == 'O' || choice == 'o') {
+            PLAYER_SYMBOL = 'O';
+            COMPUTER_SYMBOL = 'X';
+            break;
+        } else {
+            cout << "Invalid choice. Please choose X or O: ";
+        }
+    }
+}
+
+// check if draw
+int checkTie() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (board[i][j] == EMPTY) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+// play again function
+bool playAgain() {
+    char choice;
+    cout << "Do you want to play again? (Y/N): ";
+    while (true) {
+        cin >> choice;
+        if (choice == 'Y' || choice == 'y') {
+            return true;
+        } else if (choice == 'N' || choice == 'n') {
+            return false;
+        } else {
+            cout << "Invalid choice. Please enter Y or N: ";
+        }
+    }
+}
